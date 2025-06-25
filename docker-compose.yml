@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  web:
+    user: "1000:1000"
+    build: .
+    ports:
+      - "80:80"      # Nginx как прокси (единственный открытый порт)
+    volumes:
+      - ./src:/var/www/html
+      - ./install:/var/www/html/install
+    environment:
+      - APACHE_RUN_USER=www-data
+      - APACHE_RUN_GROUP=www-data
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+
+volumes:
+  db_data:
