@@ -1,1 +1,1 @@
-# ac-docker-installer
+# AC Docker installer
