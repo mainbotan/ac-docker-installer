@@ -2,22 +2,23 @@ version: '3.8'
 
 services:
   web:
-    user: "1000:1000"
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "80:80"      # Nginx как прокси (единственный открытый порт)
+      - "80:80"
     volumes:
       - ./src:/var/www/html
       - ./install:/var/www/html/install
-    environment:
-      - APACHE_RUN_USER=www-data
-      - APACHE_RUN_GROUP=www-data
+      - libreoffice:/usr/lib/libreoffice
     depends_on:
       - db
       - redis
+    networks:
+      - app-network
 
   db:
-    image: mariadb:latest
+    image: mariadb:10.11
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: app
@@ -25,9 +26,28 @@ services:
       MYSQL_PASSWORD: password
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
 
   redis:
-    image: redis:latest
+    image: redis:7-alpine
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
 
 volumes:
   db_data:
+  libreoffice:
+
+networks:
+  app-network:
+    driver: bridge
